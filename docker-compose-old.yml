@@ -1,7 +1,6 @@
 volumes:
   n8n_storage:
   postgres_storage:
-  pgadmin_storage: # New volume for pgAdmin data
   ollama_storage:
   qdrant_storage:
 
@@ -68,22 +67,6 @@ services:
       timeout: 5s
       retries: 10
 
-  pgadmin:
-    image: dpage/pgadmin4
-    hostname: pgadmin
-    networks: ['demo']
-    restart: unless-stopped
-    ports:
-      - 5050:80
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    volumes:
-      - pgadmin_storage:/var/lib/pgadmin
-    depends_on:
-      postgres:
-        condition: service_healthy
-
   n8n-import:
     <<: *service-n8n
     hostname: n8n-import
@@ -109,7 +92,6 @@ services:
       - n8n_storage:/home/node/.n8n
       - ./n8n/demo-data:/demo-data
       - ./shared:/data/shared
-      - /var/run/docker.sock:/var/run/docker.sock # <-- ADD THIS LINE
     depends_on:
       postgres:
         condition: service_healthy
@@ -126,11 +108,6 @@ services:
       - 6333:6333
     volumes:
       - qdrant_storage:/qdrant/storage
-
-  speedtest:
-    image: henrywhitaker3/speedtest-cli:latest
-    networks: [ 'demo' ]
-    restart: 'no'
 
   ollama-cpu:
     profiles: ["cpu"]
@@ -173,4 +150,3 @@ services:
     image: ollama/ollama:rocm
     depends_on:
      - ollama-gpu-amd
-
